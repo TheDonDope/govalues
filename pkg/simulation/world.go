@@ -45,32 +45,22 @@ func distance(x, y Coordinate) float64 {
 
 // Run is the infinite loop of live and death
 func (w *World) Run() {
-	
+
 	// forever
-	for  {
-		var numberOfCitizens = len(w.Citizens)
+	for {
 
-		// take one citizen
-		for i := 0; i < numberOfCitizens; i++ {
-			// and anotherone
-			for j := 0; j < numberOfCitizens; j++ {
+		oneCitizen := w.Citizens[rand.Intn(len(w.Citizens))]
+		anotherCitizen := w.Citizens[rand.Intn(len(w.Citizens))]
 
-				// a citizen should not shoot at him/herself
-				if (i==j) {
-					continue
-				}
+		// a citizen should not shoot at him/herself
+		if oneCitizen == anotherCitizen {
+			continue
+		}
 
-				var oneCitizen = w.Citizens[i]
-				var anotherCitizen = w.Citizens[j]
-				// let them fight
-				if (IsReachable(oneCitizen, anotherCitizen)) {
-					if (WillFight(oneCitizen, anotherCitizen)) {
-						oneCitizen, anotherCitizen = Conflict(oneCitizen, anotherCitizen)
-					}
-				}
-
-				w.Citizens[i] = oneCitizen
-				w.Citizens[j] = anotherCitizen
+		// let them fight
+		if IsReachable(oneCitizen, anotherCitizen) {
+			if WillFight(oneCitizen, anotherCitizen) {
+				oneCitizen, anotherCitizen = Conflict(oneCitizen, anotherCitizen)
 			}
 		}
 	}
