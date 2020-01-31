@@ -37,8 +37,20 @@ func WillFight(oneCitizen, anotherCitizen Citizen) bool {
 
 // Conflict - two citiziens shooting at each other
 // returns true if the first citizien this the otherCitizien
-func Conflict(oneCitizen, anotherCitizen Citizen) (Citizen, Citizen, ) {
-
-	fmt.Println(oneCitizen.Ideology.Name + " vs. "+ anotherCitizen.Ideology.Name)
+func Conflict(oneCitizen, anotherCitizen Citizen) (Citizen, Citizen) {
+	fmt.Println(fmt.Printf("before fight: oneCitizen Hitpoints: %v", oneCitizen.Hitpoints))
+	fmt.Println(fmt.Printf("before fight: anotherCitizen Hitpoints: %v", anotherCitizen.Hitpoints))
+	fmt.Println(oneCitizen.Ideology.Name + " vs. " + anotherCitizen.Ideology.Name)
+	d10roll := rand.Intn(10)
+	dmgRoll := rand.Intn(100)
+	if d10roll%2 == 0 {
+		// all even rolls
+		anotherCitizen.Hitpoints -= dmgRoll
+	} else {
+		// all uneven rolls
+		oneCitizen.Hitpoints -= dmgRoll
+	}
+	fmt.Println(fmt.Printf("after fight: oneCitizen Hitpoints: %v", oneCitizen.Hitpoints))
+	fmt.Println(fmt.Printf("after fight: anotherCitizen Hitpoints: %v", anotherCitizen.Hitpoints))
 	return oneCitizen, anotherCitizen
 }
