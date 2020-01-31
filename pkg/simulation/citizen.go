@@ -1,6 +1,7 @@
 package simulation
 
 import (
+	"fmt"
 	"github.com/TheDonDope/govalues/pkg/politics"
 	"math/rand"
 )
@@ -32,4 +33,12 @@ func WillFight(oneCitizen, anotherCitizen Citizen) bool {
 		}
 	}
 	return fightEnsured
+}
+
+// Conflict - two citiziens shooting at each other
+// returns true if the first citizien this the otherCitizien
+func Conflict(oneCitizen, anotherCitizen Citizen) (Citizen, Citizen, ) {
+
+	fmt.Println(oneCitizen.Ideology.Name + " vs. "+ anotherCitizen.Ideology.Name)
+	return oneCitizen, anotherCitizen
 }
