@@ -6,14 +6,13 @@ import (
 
 // Coordinate represents the two dimensional position within the world
 type Coordinate struct {
-	X float64
-	Y float64
+	X float64 // Default 0.0
+	Y float64 // Default 0.0
 }
 
 // Citizen represents a person in a world
 type Citizen struct {
-	Hitpoints  int8
+	Hitpoints  int
 	Coordinate Coordinate
 	Ideology   politics.Ideology
-	// ContactedIdeologies []politics.Ideology     # List of ideologies which have already been in contact with
 }

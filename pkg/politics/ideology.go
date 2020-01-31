@@ -3,10 +3,10 @@ package politics
 // Ideology represents a political orientation
 type Ideology struct {
 	name       string
-	economy    int8
-	diplomacy  int8
-	government int8
-	society    int8
+	economy    int
+	diplomacy  int
+	government int
+	society    int
 }
 
 // Ideologies contains the collection of all known ideologies
