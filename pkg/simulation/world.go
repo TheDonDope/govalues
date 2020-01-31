@@ -1,7 +1,6 @@
 package simulation
 
 import (
-	"fmt"
 	"github.com/TheDonDope/govalues/pkg/politics"
 	"math"
 	"math/rand"
@@ -16,10 +15,10 @@ type World struct {
 	SizeY    float64
 }
 
-// IsReachable returns if the given citizens are in reach for combat.
-func IsReachable(oneCitizen, anotherCitizen Citizen) bool {
-	overallDistance := math.Sqrt(math.Pow(anotherCitizen.Coordinate.X-oneCitizen.Coordinate.X, 2) + math.Pow(anotherCitizen.Coordinate.Y-oneCitizen.Coordinate.Y, 2))
-	return overallDistance <= reachable
+// Coordinate represents the two dimensional position within the world
+type Coordinate struct {
+	X float64 // Default 0.0
+	Y float64 // Default 0.0
 }
 
 // RandomPopulation ...
@@ -34,8 +33,12 @@ func (w *World) RandomPopulation(count int) []Citizen {
 			},
 			Ideology: politics.Ideologies[rand.Intn(len(politics.Ideologies))],
 		}
-		fmt.Println(fmt.Printf("Created citizen %v", citizen))
+		//fmt.Println(fmt.Printf("Created citizen %v", citizen))
 		population = append(population, citizen)
 	}
 	return population
+}
+
+func distance(x, y Coordinate) float64 {
+	return math.Sqrt(math.Pow(x.X-y.X, 2) + math.Pow(x.Y-y.Y, 2))
 }
