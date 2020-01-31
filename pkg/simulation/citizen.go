@@ -6,6 +6,6 @@ import (
 
 // Citizen represents a person in a world
 type Citizen struct {
-	hitpoints int8
-	ideology  politics.Ideology
+	Hitpoints int8
+	Ideology  politics.Ideology
 }
