@@ -11,9 +11,8 @@ const MaxReach = 2
 
 // World represents a simulation container with multiple persons.
 type World struct {
-	Citizens []Citizen
-	SizeX    float64
-	SizeY    float64
+	Citizens   []Citizen
+	Boundaries Coordinate
 }
 
 // Coordinate represents the two dimensional position within the world.
@@ -41,8 +40,8 @@ func (w *World) RandomPopulation(count int) []Citizen {
 			Hitpoints: rand.Intn(100),
 			Coordinate: Coordinate{
 				// Restrict placement of a citizen to be within the boundaries of the world.
-				X: rand.Float64() * w.SizeX,
-				Y: rand.Float64() * w.SizeY,
+				X: rand.Float64() * w.Boundaries.X,
+				Y: rand.Float64() * w.Boundaries.Y,
 			},
 			Ideology: politics.Ideologies[rand.Intn(len(politics.Ideologies))],
 		}
@@ -79,8 +78,8 @@ func (w *World) Run() {
 			}
 		}
 		// Return the combatans back to the population
-		w.Citizens[oneIndex] = oneCitizen
-		w.Citizens[anotherIndex] = anotherCitizen
+		w.Citizens[oneIndex] = Roam(oneCitizen, w.Boundaries)
+		w.Citizens[anotherIndex] = Roam(anotherCitizen, w.Boundaries)
 	}
 
 }

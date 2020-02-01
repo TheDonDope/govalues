@@ -69,3 +69,39 @@ func Conflict(oneCitizen, anotherCitizen Citizen) (Citizen, Citizen) {
 
 	return oneCitizen, anotherCitizen
 }
+
+// Move a citizen by a given vectorCoordinate in the boundaries of the world(maximumX/Y)
+func Move(citizen Citizen, vectorCoordinate Coordinate, boundaries Coordinate) Citizen {
+	
+	// calculate the proposed new coordinate
+	newCoordinate := Coordinate{
+		X: citizen.Coordinate.X + vectorCoordinate.X,
+		Y: citizen.Coordinate.Y + vectorCoordinate.Y,
+	}
+
+	// check whether the proposed new coordinate is still in the boundaries 
+	if newCoordinate.X < boundaries.X {
+		citizen.Coordinate.X = newCoordinate.X
+	} else {
+		citizen.Coordinate.X = boundaries.X
+	}
+	if newCoordinate.Y < boundaries.Y {
+		citizen.Coordinate.Y = newCoordinate.Y
+	} else {
+		citizen.Coordinate.Y = boundaries.Y
+	}
+
+	return citizen
+}
+
+// Roam lets a given citizen roam around in given boundaries
+func Roam(citizen Citizen, boundaries Coordinate) Citizen {
+
+	// calculate a random vector
+	vectorCoordinate := Coordinate{
+		X: rand.Float64() * MaxReach,
+		Y: rand.Float64() * MaxReach,
+	}
+
+	return Move(citizen, vectorCoordinate, boundaries)
+}
