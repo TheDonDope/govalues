@@ -46,11 +46,17 @@ func distance(x, y Coordinate) float64 {
 // Run is the infinite loop of live and death
 func (w *World) Run() {
 
-	// forever
+	// forever - i := 0; i < 1; i++
 	for {
-
-		oneCitizen := w.Citizens[rand.Intn(len(w.Citizens))]
-		anotherCitizen := w.Citizens[rand.Intn(len(w.Citizens))]
+		// take two random citizen
+		oneIndex := rand.Intn(len(w.Citizens))
+		anotherIndex := rand.Intn(len(w.Citizens))
+		oneCitizen := w.Citizens[oneIndex]
+		anotherCitizen := w.Citizens[anotherIndex]
+		// do not beat on a dead horse
+		if anotherCitizen.Hitpoints <= 0 || oneCitizen.Hitpoints <= 0 {
+			continue
+		}
 
 		// a citizen should not shoot at him/herself
 		if oneCitizen == anotherCitizen {
@@ -63,5 +69,8 @@ func (w *World) Run() {
 				oneCitizen, anotherCitizen = Conflict(oneCitizen, anotherCitizen)
 			}
 		}
+		w.Citizens[oneIndex] = oneCitizen
+		w.Citizens[anotherIndex] = anotherCitizen
+
 	}
 }
