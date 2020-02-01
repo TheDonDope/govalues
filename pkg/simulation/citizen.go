@@ -3,6 +3,7 @@ package simulation
 import (
 	"fmt"
 	"github.com/TheDonDope/govalues/pkg/politics"
+	"math"
 	"math/rand"
 )
 
@@ -11,6 +12,28 @@ type Citizen struct {
 	Hitpoints  int
 	Coordinate Coordinate
 	Ideology   politics.Ideology
+}
+
+// ClosestIdeology returns the Ideology that is closest to the citizens own ideologic values.
+func ClosestIdeology(c Citizen) politics.Ideology {
+	var closestIdeology politics.Ideology = politics.Ideology{
+		Name:       "MaxIdeology",
+		Economy:    math.MaxFloat64,
+		Diplomacy:  math.MaxFloat64,
+		Government: math.MaxFloat64,
+		Society:    math.MaxFloat64,
+	}
+	var closestDistance float64 = politics.IdeologicDistance(c.Ideology, closestIdeology)
+
+	for _, v := range politics.Ideologies {
+		d := politics.IdeologicDistance(c.Ideology, v)
+		if d < closestDistance {
+			closestDistance = d
+			closestIdeology = v
+		}
+	}
+
+	return closestIdeology
 }
 
 // WillFight determines if the given citizens will engage in violent interaction given their political ideoligies.
