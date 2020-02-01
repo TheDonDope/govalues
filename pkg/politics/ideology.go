@@ -13,7 +13,7 @@ type Ideology struct {
 	Society    float64
 }
 
-// IdeologicDistance returns the distance of the average of all ideologic properties
+// IdeologicDistance returns the distance over all ideologic properties
 func IdeologicDistance(oneIdeology, anotherIdeology Ideology) float64 {
 	return math.Sqrt(
 		math.Pow(oneIdeology.Economy-anotherIdeology.Economy, 2) + math.Pow(oneIdeology.Diplomacy-anotherIdeology.Diplomacy, 2) + math.Pow(oneIdeology.Government-anotherIdeology.Government, 2) + math.Pow(oneIdeology.Society-anotherIdeology.Society, 2))
