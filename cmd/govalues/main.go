@@ -9,14 +9,14 @@ import (
 func main() {
 	fmt.Println("Welcome to go values.")
 
-	// Create a new world with random? or fixed number of citizens
-
+	citizensNuremberg := 518365
+	// Create a new world with a Nuremburg sized population
 	world := &simulation.World{
 		SizeX: rand.Float64(),
 		SizeY: rand.Float64(),
 	}
-	world.Citizens = world.RandomPopulation(5000)
+	world.Citizens = world.RandomPopulation(citizensNuremberg)
 
-	// start the infinite loop
+	// Start the infinite loop of life and death
 	world.Run()
 }
