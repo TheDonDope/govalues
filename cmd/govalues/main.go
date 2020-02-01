@@ -15,7 +15,7 @@ func main() {
 		SizeX: rand.Float64(),
 		SizeY: rand.Float64(),
 	}
-	world.Citizens = world.RandomPopulation(500000)
+	world.Citizens = world.RandomPopulation(5000)
 
 	// start the infinite loop
 	world.Run()
