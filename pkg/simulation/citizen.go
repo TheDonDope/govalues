@@ -1,17 +1,40 @@
 package simulation
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/TheDonDope/govalues/pkg/politics"
 	"math"
 	"math/rand"
 )
 
+// MaxHitpoints is the maximum hitpoints a citizen can accumulate.
+const MaxHitpoints = 100
+
 // Citizen represents a person in a world
 type Citizen struct {
+	ID         int
 	Hitpoints  int
 	Coordinate Coordinate
 	Ideology   politics.Ideology
+	Killed []string
+}
+
+func (c *Citizen) gainHitpoints(hitpoints int) {
+	newHitpoints := c.Hitpoints + hitpoints
+	if newHitpoints > MaxHitpoints {
+		c.Hitpoints = MaxHitpoints
+	} else {
+		c.Hitpoints = newHitpoints
+	}
+}
+
+func (c *Citizen) loseHitpoints(hitpoints int) {
+	newHitpoints := c.Hitpoints - hitpoints
+	if newHitpoints < 0 {
+		c.Hitpoints = 0
+	} else {
+		c.Hitpoints = newHitpoints
+	}
 }
 
 // ClosestIdeology returns the Ideology that is closest to the citizens own ideologic values.
@@ -40,7 +63,7 @@ func ClosestIdeology(c Citizen) politics.Ideology {
 func WillFight(oneCitizen, anotherCitizen Citizen) bool {
 	distance := politics.IdeologicDistance(oneCitizen.Ideology, anotherCitizen.Ideology)
 	var fightEnsured bool
-	if distance < 50 {
+	if distance < 25 {
 		// A bad day can happen to anyone, so let the dice decide...
 		d100Roll := rand.Intn(100)
 		if d100Roll <= 5 {
@@ -55,16 +78,18 @@ func WillFight(oneCitizen, anotherCitizen Citizen) bool {
 
 // Conflict - two citiziens shooting at each other. Returns both citizens after the fighting is done
 func Conflict(oneCitizen, anotherCitizen Citizen) (Citizen, Citizen) {
-	fmt.Println(oneCitizen.Ideology.Name + " vs. " + anotherCitizen.Ideology.Name)
+	// fmt.Println(fmt.Sprintf("%v(%v) vs. %v(%v) ", oneCitizen.Ideology.Name, oneCitizen.ID, anotherCitizen.Ideology.Name, anotherCitizen.ID))
 	hitRoll := rand.Intn(10)
-	dmgRoll := rand.Intn(100)
+	dmgRoll := rand.Intn(10)
 
 	if hitRoll%2 == 0 {
 		// All even rolls will hit anotherCitizen
-		anotherCitizen.Hitpoints -= dmgRoll
+		anotherCitizen.loseHitpoints(dmgRoll)
+		oneCitizen.gainHitpoints(dmgRoll/2)
 	} else if hitRoll%2 == 1 {
 		// All uneven rolls will hit OneCitizen
-		oneCitizen.Hitpoints -= dmgRoll
+		oneCitizen.loseHitpoints(dmgRoll)
+		anotherCitizen.gainHitpoints(dmgRoll/2)
 	}
 
 	return oneCitizen, anotherCitizen
@@ -72,23 +97,28 @@ func Conflict(oneCitizen, anotherCitizen Citizen) (Citizen, Citizen) {
 
 // Move a citizen by a given vectorCoordinate in the boundaries of the world(maximumX/Y)
 func Move(citizen Citizen, vectorCoordinate Coordinate, boundaries Coordinate) Citizen {
-	
+
 	// calculate the proposed new coordinate
 	newCoordinate := Coordinate{
 		X: citizen.Coordinate.X + vectorCoordinate.X,
 		Y: citizen.Coordinate.Y + vectorCoordinate.Y,
 	}
 
-	// check whether the proposed new coordinate is still in the boundaries 
-	if newCoordinate.X < boundaries.X {
-		citizen.Coordinate.X = newCoordinate.X
-	} else {
+	// check whether the proposed new coordinate is still in the boundaries
+	if newCoordinate.X < 0.0 {
+		newCoordinate.X = 0.0
+	} else if newCoordinate.X > boundaries.X {
 		citizen.Coordinate.X = boundaries.X
-	}
-	if newCoordinate.Y < boundaries.Y {
-		citizen.Coordinate.Y = newCoordinate.Y
 	} else {
+		citizen.Coordinate.X = newCoordinate.X
+	}
+
+	if newCoordinate.Y < 0.0 {
+		newCoordinate.Y = 0.0
+	} else if newCoordinate.Y > boundaries.Y {
 		citizen.Coordinate.Y = boundaries.Y
+	} else {
+		citizen.Coordinate.Y = newCoordinate.Y
 	}
 
 	return citizen
@@ -99,8 +129,8 @@ func Roam(citizen Citizen, boundaries Coordinate) Citizen {
 
 	// calculate a random vector
 	vectorCoordinate := Coordinate{
-		X: rand.Float64() * MaxReach,
-		Y: rand.Float64() * MaxReach,
+		X: rand.Float64()*MaxReach - MaxReach/2,
+		Y: rand.Float64()*MaxReach - MaxReach/2,
 	}
 
 	return Move(citizen, vectorCoordinate, boundaries)
