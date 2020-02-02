@@ -238,3 +238,7 @@ cp.html
 .vscode/*
 # !/govalues/**
 # cmd/govalues/output
+
+
+world_dump.json
+main
