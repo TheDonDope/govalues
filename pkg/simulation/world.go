@@ -7,23 +7,22 @@ import (
 	"math"
 	"math/rand"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/TheDonDope/govalues/pkg/politics"
 )
 
 // MaxReach is the maximum distance two citizens can be afar for combat interaction.
 const MaxReach = 2
 
-// World represents a simulation container with multiple persons.
-type World struct {
-	Citizens   []Citizen
-	BodyBags   []Citizen
-	Boundaries Boundary
+// Distance returns the euclidic distance between two coordinates in a two dimensional plane.
+func Distance(x, y Coordinate) float64 {
+	return math.Sqrt(math.Pow(x.X-y.X, 2) + math.Pow(x.Y-y.Y, 2))
 }
 
-// Coordinate represents the two dimensional position within the world.
-type Coordinate struct {
-	X float64
-	Y float64
+// IsReachable returns if the given citizens are in reach for combat.
+func IsReachable(c, d Citizen) bool {
+	return Distance(c.Coordinate, d.Coordinate) <= MaxReach
 }
 
 // Boundary represents the upper horizontal and vertical boundaries of the world size.
@@ -32,15 +31,150 @@ type Boundary struct {
 	Y float64
 }
 
-// Distance returns the euclidic distance between two coordinates in a two dimensional plane.
-func Distance(x, y Coordinate) float64 {
-	return math.Sqrt(math.Pow(x.X-y.X, 2) + math.Pow(x.Y-y.Y, 2))
+func (b Boundary) String() string {
+	return fmt.Sprintf("%.2f, %.2f", b.X, b.Y)
 }
 
-// IsReachable returns if the given citizens are in reach for combat.
-func IsReachable(oneCitizen, anotherCitizen Citizen) bool {
-	overallDistance := Distance(oneCitizen.Coordinate, anotherCitizen.Coordinate)
-	return overallDistance <= MaxReach
+// Coordinate represents the two dimensional position within the world.
+type Coordinate struct {
+	X float64
+	Y float64
+}
+
+func (c Coordinate) String() string {
+	return fmt.Sprintf("%.2f, %.2f", c.X, c.Y)
+}
+
+func (c *Coordinate) ensureBounds(b Boundary) {
+	// Check for lower x bounds
+	if c.X < 0 {
+		c.X = 0
+	} else if c.X > b.X {
+		// Check for upper x bounds
+		c.X = b.X
+	}
+	// Check for lower y bounds
+	if c.Y < 0 {
+		c.Y = 0
+	} else if c.Y > b.Y {
+		// Check for upper y bounds
+		c.Y = b.Y
+	}
+}
+
+// World represents a simulation container with multiple persons.
+type World struct {
+	Citizens   []Citizen
+	BodyBags   []Citizen
+	Boundaries Boundary
+}
+
+// RandomCitizen returns a fresh all new citizen.
+func (w *World) RandomCitizen() Citizen {
+	c := Citizen{
+		ID:        rand.Int(),
+		Hitpoints: rand.Intn(MaxHitpoints),
+		Coordinate: Coordinate{
+			// Restrict placement of a citizen to be within the boundaries of the world.
+			X: rand.Float64() * w.Boundaries.X,
+			Y: rand.Float64() * w.Boundaries.Y,
+		},
+		Ideology: politics.Ideologies[rand.Intn(len(politics.Ideologies))],
+	}
+
+	log.WithFields(log.Fields{
+		"Coord":    c.Coordinate,
+		"Ideology": c.Ideology.Name,
+		"HP":       c.Hitpoints,
+	}).Info("Citizen created.")
+
+	return c
+}
+
+// RandomPopulation returns a collection of citizen with the size of the given count.
+func (w *World) RandomPopulation(count int) []Citizen {
+	var population []Citizen
+
+	for i := 0; i < count; i++ {
+		population = append(population, w.RandomCitizen())
+	}
+
+	return population
+}
+
+// IsLastSurvivor returns true if there is only one citizen left.
+func (w *World) IsLastSurvivor() bool {
+	return len(w.Citizens) <= 1
+}
+
+// Shutdown logs the last surviver and dumps the state of the world at its last breath.
+func (w *World) Shutdown() {
+	log.WithFields(log.Fields{"Ideology": w.Citizens[0].Ideology.Name,
+		"#ID": w.Citizens[0].ID}).Info("Round finished.")
+	w.dump()
+}
+
+// Run is the infinite loop of life and death.
+func (w *World) Run() {
+	var theyLive bool = !w.IsLastSurvivor()
+
+	for theyLive {
+		// Get two random indices
+		i := rand.Intn(len(w.Citizens))
+		j := rand.Intn(len(w.Citizens))
+
+		// A citizen should not shoot at him/herself
+		if i == j {
+			continue
+		}
+
+		// Take two random citizen
+		c := w.Citizens[i]
+		d := w.Citizens[j]
+
+		// Let the battle commence...
+		if IsReachable(c, d) {
+			if WillFight(c, d) {
+				c.Conflict(&d)
+			}
+		}
+
+		// Return or Remove oneCitizen
+		if c.Hitpoints == 0 {
+			// update the list of killed ideloogies
+			d.Killed = append(d.Killed, c.Ideology.Name)
+
+			// remove oneCitizen
+			w.removeCitizen(i, c)
+
+			// Update anotherIndex
+			if i < j {
+				j--
+			}
+
+		} else {
+			// oneCitizen continues to live
+			c.Roam(w.Boundaries)
+		}
+
+		// Return or Remove anotherCitizen
+		if d.Hitpoints == 0 {
+			// update the list of killed ideloogies
+			c.Killed = append(c.Killed, d.Ideology.Name)
+
+			// remove anotherCitizen
+			w.removeCitizen(j, d)
+			// fmt.Println(fmt.Sprintf("%4v citizens left. %v(%v) died.", len(w.Citizens), anotherCitizen.Ideology.Name, anotherCitizen.ID))
+		} else {
+			// anotherCitizen continues to live
+			d.Roam(w.Boundaries)
+		}
+		// Check if they still live
+		theyLive = !w.IsLastSurvivor()
+	}
+
+	// Leave this cruel world.
+	w.Shutdown()
 }
 
 // dump data to file world_dump.json
@@ -49,9 +183,10 @@ func (w *World) dump() {
 	_ = ioutil.WriteFile("world_dump.json", file, 0644)
 }
 
-func (w *World) removeCitizen(index int, citizen Citizen) {
+// removeCitizen removes the given citizen from the given index.
+func (w *World) removeCitizen(i int, c Citizen) {
 
-	w.BodyBags = append(w.BodyBags, citizen)
+	w.BodyBags = append(w.BodyBags, c)
 
 	// https://github.com/golang/go/wiki/SliceTricks
 
@@ -61,96 +196,15 @@ func (w *World) removeCitizen(index int, citizen Citizen) {
 	// w.Citizens = w.Citizens[:len(w.Citizens)-1]
 
 	// Delete
-	if index < len(w.Citizens)-1 {
-		copy(w.Citizens[index:], w.Citizens[index+1:])
+	if i < len(w.Citizens)-1 {
+		copy(w.Citizens[i:], w.Citizens[i+1:])
 	}
 	w.Citizens[len(w.Citizens)-1] = Citizen{}
 	w.Citizens = w.Citizens[:len(w.Citizens)-1]
-	fmt.Println(fmt.Sprintf("%4v citizens left.", len(w.Citizens)))
-}
 
-// RandomPopulation returns a collection of citizen with the size of the given count.
-func (w *World) RandomPopulation(count int) []Citizen {
-	var population []Citizen
-	for i := 0; i < count; i++ {
-		citizen := Citizen{
-			ID:        i,
-			Hitpoints: rand.Intn(MaxHitpoints),
-			Coordinate: Coordinate{
-				// Restrict placement of a citizen to be within the boundaries of the world.
-				X: rand.Float64() * w.Boundaries.X,
-				Y: rand.Float64() * w.Boundaries.Y,
-			},
-			Ideology: politics.Ideologies[rand.Intn(len(politics.Ideologies))],
-		}
-		population = append(population, citizen)
-	}
-	return population
-}
-
-// Run is the infinite loop of life and death
-func (w *World) Run() {
-
-	for {
-		// Are we done yet?
-		if len(w.Citizens) <= 1 {
-			fmt.Println(fmt.Sprintf("%v(%v) won.", w.Citizens[0].Ideology.Name, w.Citizens[0].ID))
-			w.dump()
-			break
-		}
-
-		// Get two random indices
-		oneIndex := rand.Intn(len(w.Citizens))
-		anotherIndex := rand.Intn(len(w.Citizens))
-
-		// A citizen should not shoot at him/herself
-		if oneIndex == anotherIndex {
-			continue
-		}
-
-		// Take two random citizen
-		oneCitizen := w.Citizens[oneIndex]
-		anotherCitizen := w.Citizens[anotherIndex]
-
-		// Let the battle commence...
-		if IsReachable(oneCitizen, anotherCitizen) {
-			if WillFight(oneCitizen, anotherCitizen) {
-				oneCitizen, anotherCitizen = Conflict(oneCitizen, anotherCitizen)
-			}
-		}
-
-		/// Return the combatans back to the population
-
-		// Return or Remove oneCitizen
-		if oneCitizen.Hitpoints == 0 {
-			// update the list of killed ideloogies
-			anotherCitizen.Killed = append(anotherCitizen.Killed, oneCitizen.Ideology.Name)
-
-			// remove oneCitizen
-			w.removeCitizen(oneIndex, oneCitizen)
-			// fmt.Println(fmt.Sprintf("%4v citizens left. %v(%v) died.", len(w.Citizens), oneCitizen.Ideology.Name, oneCitizen.ID))
-
-			// Update anotherIndex
-			if oneIndex < anotherIndex {
-				anotherIndex = anotherIndex - 1
-			}
-
-		} else {
-			// oneCitizen continues to live
-			w.Citizens[oneIndex] = Roam(oneCitizen, w.Boundaries)
-		}
-
-		// Return or Remove anotherCitizen
-		if anotherCitizen.Hitpoints == 0 {
-			// update the list of killed ideloogies
-			oneCitizen.Killed = append(oneCitizen.Killed, anotherCitizen.Ideology.Name)
-
-			// remove anotherCitizen
-			w.removeCitizen(anotherIndex, anotherCitizen)
-			// fmt.Println(fmt.Sprintf("%4v citizens left. %v(%v) died.", len(w.Citizens), anotherCitizen.Ideology.Name, anotherCitizen.ID))
-		} else {
-			// anotherCitizen continues to live
-			w.Citizens[anotherIndex] = Roam(anotherCitizen, w.Boundaries)
-		}
-	}
+	log.WithFields(log.Fields{
+		"#Left":  len(w.Citizens),
+		"ID":     c.ID,
+		"Killed": c.Ideology.Name,
+	}).Info("Citizen removed.")
 }
