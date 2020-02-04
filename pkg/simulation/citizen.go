@@ -1,10 +1,10 @@
 package simulation
 
 import (
-	// "fmt"
-	"github.com/TheDonDope/govalues/pkg/politics"
 	"math"
 	"math/rand"
+
+	"github.com/TheDonDope/govalues/pkg/politics"
 )
 
 // MaxHitpoints is the maximum hitpoints a citizen can accumulate.
