@@ -10,6 +10,45 @@ import (
 // MaxHitpoints is the maximum hitpoints a citizen can accumulate.
 const MaxHitpoints = 100
 
+// ClosestIdeology returns the Ideology that is closest to the citizens own ideologic values.
+func ClosestIdeology(c Citizen) politics.Ideology {
+	var closest politics.Ideology = politics.Ideology{
+		Name:       "MaxIdeology",
+		Economy:    math.MaxFloat64,
+		Diplomacy:  math.MaxFloat64,
+		Government: math.MaxFloat64,
+		Society:    math.MaxFloat64,
+	}
+
+	var dist float64 = politics.IdeologicDistance(c.Ideology, closest)
+	for _, v := range politics.Ideologies {
+		d := politics.IdeologicDistance(c.Ideology, v)
+		if d < dist {
+			dist = d
+			closest = v
+		}
+	}
+
+	return closest
+}
+
+// WillFight determines if the given citizens will engage in violent interaction given their political ideoligies.
+func WillFight(c, d Citizen) bool {
+	dist := politics.IdeologicDistance(c.Ideology, d.Ideology)
+	var fight bool
+	if dist < 25 {
+		// A bad day can happen to anyone, so let the dice decide...
+		hit := rand.Intn(100)
+		if hit <= 5 {
+			fight = true
+		}
+	} else {
+		// Any distance over 50 will lead to a fight
+		fight = true
+	}
+	return fight
+}
+
 // Citizen represents a person in a world
 type Citizen struct {
 	ID         int
@@ -19,119 +58,87 @@ type Citizen struct {
 	Killed     []string
 }
 
-func (c *Citizen) gainHitpoints(hitpoints int) {
-	newHitpoints := c.Hitpoints + hitpoints
-	if newHitpoints > MaxHitpoints {
-		c.Hitpoints = MaxHitpoints
-	} else {
-		c.Hitpoints = newHitpoints
-	}
-}
+// Conflict - two citiziens shooting at each other.
+func (c *Citizen) Conflict(d *Citizen) {
+	hit := rand.Intn(10)
+	dmg := rand.Intn(10)
 
-func (c *Citizen) loseHitpoints(hitpoints int) {
-	newHitpoints := c.Hitpoints - hitpoints
-	if newHitpoints < 0 {
-		c.Hitpoints = 0
-	} else {
-		c.Hitpoints = newHitpoints
-	}
-}
-
-// ClosestIdeology returns the Ideology that is closest to the citizens own ideologic values.
-func ClosestIdeology(c Citizen) politics.Ideology {
-	var closestIdeology politics.Ideology = politics.Ideology{
-		Name:       "MaxIdeology",
-		Economy:    math.MaxFloat64,
-		Diplomacy:  math.MaxFloat64,
-		Government: math.MaxFloat64,
-		Society:    math.MaxFloat64,
-	}
-	var closestDistance float64 = politics.IdeologicDistance(c.Ideology, closestIdeology)
-
-	for _, v := range politics.Ideologies {
-		d := politics.IdeologicDistance(c.Ideology, v)
-		if d < closestDistance {
-			closestDistance = d
-			closestIdeology = v
-		}
-	}
-
-	return closestIdeology
-}
-
-// WillFight determines if the given citizens will engage in violent interaction given their political ideoligies.
-func WillFight(oneCitizen, anotherCitizen Citizen) bool {
-	distance := politics.IdeologicDistance(oneCitizen.Ideology, anotherCitizen.Ideology)
-	var fightEnsured bool
-	if distance < 25 {
-		// A bad day can happen to anyone, so let the dice decide...
-		d100Roll := rand.Intn(100)
-		if d100Roll <= 5 {
-			fightEnsured = true
-		}
-	} else {
-		// Any distance over 50 will lead to a fight
-		fightEnsured = true
-	}
-	return fightEnsured
-}
-
-// Conflict - two citiziens shooting at each other. Returns both citizens after the fighting is done
-func Conflict(oneCitizen, anotherCitizen Citizen) (Citizen, Citizen) {
-	// fmt.Println(fmt.Sprintf("%v(%v) vs. %v(%v) ", oneCitizen.Ideology.Name, oneCitizen.ID, anotherCitizen.Ideology.Name, anotherCitizen.ID))
-	hitRoll := rand.Intn(10)
-	dmgRoll := rand.Intn(10)
-
-	if hitRoll%2 == 0 {
+	if hit%2 == 0 {
 		// All even rolls will hit anotherCitizen
-		anotherCitizen.loseHitpoints(dmgRoll)
-		oneCitizen.gainHitpoints(dmgRoll / 2)
-	} else if hitRoll%2 == 1 {
+		d.loseHitpoints(dmg)
+		// c.gainHitpoints(dmg / 2)
+	} else if hit%2 == 1 {
 		// All uneven rolls will hit OneCitizen
-		oneCitizen.loseHitpoints(dmgRoll)
-		anotherCitizen.gainHitpoints(dmgRoll / 2)
+		c.loseHitpoints(dmg)
+		// d.gainHitpoints(dmg / 2)
 	}
-
-	return oneCitizen, anotherCitizen
 }
 
 // Move a citizen by a given vectorCoordinate in the boundaries of the world(maximumX/Y)
-func Move(citizen Citizen, vectorCoordinate Coordinate, boundaries Boundary) Citizen {
+func (c *Citizen) Move(v Coordinate, b Boundary) {
+	// log.WithFields(log.Fields{
+	// 	"Start":  c.Coordinate,
+	// 	"Vector": v,
+	// }).Info("Start Move")
 
-	// calculate the proposed new coordinate
-	newCoordinate := Coordinate{
-		X: citizen.Coordinate.X + vectorCoordinate.X,
-		Y: citizen.Coordinate.Y + vectorCoordinate.Y,
+	// Calculate the proposed new coordinate.
+	d := Coordinate{
+		X: c.Coordinate.X + v.X,
+		Y: c.Coordinate.Y + v.Y,
 	}
 
-	// check whether the proposed new coordinate is still in the boundaries
-	if newCoordinate.X < 0.0 {
-		newCoordinate.X = 0.0
-	} else if newCoordinate.X > boundaries.X {
-		citizen.Coordinate.X = boundaries.X
-	} else {
-		citizen.Coordinate.X = newCoordinate.X
-	}
+	// Ensure to remain in worldbounds
+	d.ensureBounds(b)
 
-	if newCoordinate.Y < 0.0 {
-		newCoordinate.Y = 0.0
-	} else if newCoordinate.Y > boundaries.Y {
-		citizen.Coordinate.Y = boundaries.Y
-	} else {
-		citizen.Coordinate.Y = newCoordinate.Y
-	}
+	// Set new coordinates
+	c.Coordinate.X = d.X
+	c.Coordinate.Y = d.Y
 
-	return citizen
+	// log.WithFields(log.Fields{
+	// 	"End": c.Coordinate,
+	// }).Info("End End")
 }
 
-// Roam lets a given citizen roam around in given boundaries
-func Roam(citizen Citizen, boundaries Boundary) Citizen {
-
-	// calculate a random vector
-	vectorCoordinate := Coordinate{
+// Roam lets a given citizen roam around in given boundaries.
+func (c *Citizen) Roam(b Boundary) {
+	// Calculate a random vector.
+	d := Coordinate{
 		X: rand.Float64()*MaxReach - MaxReach/2,
 		Y: rand.Float64()*MaxReach - MaxReach/2,
 	}
 
-	return Move(citizen, vectorCoordinate, boundaries)
+	// Move the citizen within the boundaries.
+	c.Move(d, b)
+}
+
+func (c *Citizen) gainHitpoints(h int) {
+	// log.WithFields(log.Fields{
+	// 	"Before": c,
+	// }).Info("Gain HP")
+	v := c.Hitpoints + h
+	if v > MaxHitpoints {
+		c.Hitpoints = MaxHitpoints
+	} else {
+		c.Hitpoints = v
+	}
+}
+
+func (c *Citizen) loseHitpoints(h int) {
+	// log.WithFields(log.Fields{
+	// 	"Before": c,
+	// }).Info("Lose HP")
+	v := c.Hitpoints - h
+	if v < 0 {
+		c.Hitpoints = 0
+	} else {
+		c.Hitpoints = v
+	}
+}
+
+func (c *Citizen) chaseAfter(d *Citizen) {
+	// Calculate a random vector.
+	// b := Coordinate{
+	// 	X: rand.Float64()*MaxReach - MaxReach/2,
+	// 	Y: rand.Float64()*MaxReach - MaxReach/2,
+	// }
 }
