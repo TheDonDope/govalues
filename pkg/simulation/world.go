@@ -13,7 +13,7 @@ import (
 )
 
 // MaxReach is the maximum distance two citizens can be afar for combat interaction.
-const MaxReach = 2
+const MaxReach = 1
 
 // Distance returns the euclidic distance between two coordinates in a two dimensional plane.
 func Distance(x, y Coordinate) float64 {
@@ -129,23 +129,24 @@ func (w *World) Run() {
 		}
 
 		// Take two random citizen
-		c := w.Citizens[i]
-		d := w.Citizens[j]
+		// c := w.Citizens[i]
+		// d := w.Citizens[j]
 
 		// Let the battle commence...
-		if IsReachable(c, d) {
-			if WillFight(c, d) {
-				c.Conflict(&d)
+
+		if IsReachable(w.Citizens[i], w.Citizens[j]) {
+			if WillFight(w.Citizens[i], w.Citizens[j]) {
+				w.Citizens[i].Conflict(w.Citizens[j], w.Boundaries)
 			}
 		}
 
 		// Return or Remove oneCitizen
-		if c.Hitpoints == 0 {
+		if w.Citizens[i].Hitpoints == 0 {
 			// update the list of killed ideloogies
-			d.Killed = append(d.Killed, c.Ideology.Name)
+			w.Citizens[j].Killed = append(w.Citizens[j].Killed, w.Citizens[i].Ideology.Name)
 
 			// remove oneCitizen
-			w.removeCitizen(i, c)
+			w.removeCitizen(i, w.Citizens[i])
 
 			// Update anotherIndex
 			if i < j {
@@ -154,20 +155,20 @@ func (w *World) Run() {
 
 		} else {
 			// oneCitizen continues to live
-			c.Roam(w.Boundaries)
+			w.Citizens[i].Roam(w.Boundaries)
 		}
 
 		// Return or Remove anotherCitizen
-		if d.Hitpoints == 0 {
+		if w.Citizens[j].Hitpoints == 0 {
 			// update the list of killed ideloogies
-			c.Killed = append(c.Killed, d.Ideology.Name)
+			w.Citizens[i].Killed = append(w.Citizens[i].Killed, w.Citizens[j].Ideology.Name)
 
 			// remove anotherCitizen
-			w.removeCitizen(j, d)
+			w.removeCitizen(j, w.Citizens[j])
 			// fmt.Println(fmt.Sprintf("%4v citizens left. %v(%v) died.", len(w.Citizens), anotherCitizen.Ideology.Name, anotherCitizen.ID))
 		} else {
 			// anotherCitizen continues to live
-			d.Roam(w.Boundaries)
+			w.Citizens[j].Roam(w.Boundaries)
 		}
 		// Check if they still live
 		theyLive = !w.IsLastSurvivor()
