@@ -1,15 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/TheDonDope/govalues/pkg/simulation"
 )
 
 func main() {
-	fmt.Println("Welcome to go values.")
+	// Roll the dice...
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	// citizensNuremberg := 518365
@@ -22,7 +23,11 @@ func main() {
 			Y: 100,
 		},
 	}
-	world.Citizens = world.RandomPopulation(100)
+	size := 100
+	world.Citizens = world.RandomPopulation(size)
+
+	log.WithFields(log.Fields{"Boundaries (X Y)": world.Boundaries,
+		"#Citizens": len(world.Citizens)}).Info("World created.")
 
 	// Start the infinite loop of life and death
 	world.Run()
