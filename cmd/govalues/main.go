@@ -21,7 +21,7 @@ func main() {
 			Y: 100,
 		},
 	}
-	world.Citizens = world.RandomPopulation(1000)
+	world.Citizens = world.RandomPopulation(100)
 
 	// Start the infinite loop of life and death
 	world.Run()

@@ -60,6 +60,7 @@ func (w *World) removeCitizen(index int, citizen Citizen) {
 	}
 	w.Citizens[len(w.Citizens)-1] = Citizen{}
 	w.Citizens = w.Citizens[:len(w.Citizens)-1]
+	fmt.Println(fmt.Sprintf("%4v citizens left.", len(w.Citizens)))
 }
 
 // RandomPopulation returns a collection of citizen with the size of the given count.
@@ -84,7 +85,6 @@ func (w *World) RandomPopulation(count int) []Citizen {
 // Run is the infinite loop of life and death
 func (w *World) Run() {
 
-	infoCount := 0
 	for {
 		// Are we done yet?
 		if len(w.Citizens) <= 1 {
@@ -145,14 +145,6 @@ func (w *World) Run() {
 		} else {
 			// anotherCitizen continues to live
 			w.Citizens[anotherIndex] = Roam(anotherCitizen, w.Boundaries)
-		}
-		
-		// print some information once in a while
-		if infoCount > int(len(w.Citizens)/2) {
-			fmt.Println(fmt.Sprintf("%4v citizens left.", len(w.Citizens)))
-			infoCount = 0
-		} else {
-			infoCount = infoCount + 1
 		}
 	}
 }
