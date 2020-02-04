@@ -16,7 +16,7 @@ type Citizen struct {
 	Hitpoints  int
 	Coordinate Coordinate
 	Ideology   politics.Ideology
-	Killed []string
+	Killed     []string
 }
 
 func (c *Citizen) gainHitpoints(hitpoints int) {
@@ -85,18 +85,18 @@ func Conflict(oneCitizen, anotherCitizen Citizen) (Citizen, Citizen) {
 	if hitRoll%2 == 0 {
 		// All even rolls will hit anotherCitizen
 		anotherCitizen.loseHitpoints(dmgRoll)
-		oneCitizen.gainHitpoints(dmgRoll/2)
+		oneCitizen.gainHitpoints(dmgRoll / 2)
 	} else if hitRoll%2 == 1 {
 		// All uneven rolls will hit OneCitizen
 		oneCitizen.loseHitpoints(dmgRoll)
-		anotherCitizen.gainHitpoints(dmgRoll/2)
+		anotherCitizen.gainHitpoints(dmgRoll / 2)
 	}
 
 	return oneCitizen, anotherCitizen
 }
 
 // Move a citizen by a given vectorCoordinate in the boundaries of the world(maximumX/Y)
-func Move(citizen Citizen, vectorCoordinate Coordinate, boundaries Coordinate) Citizen {
+func Move(citizen Citizen, vectorCoordinate Coordinate, boundaries Boundary) Citizen {
 
 	// calculate the proposed new coordinate
 	newCoordinate := Coordinate{
@@ -125,7 +125,7 @@ func Move(citizen Citizen, vectorCoordinate Coordinate, boundaries Coordinate) C
 }
 
 // Roam lets a given citizen roam around in given boundaries
-func Roam(citizen Citizen, boundaries Coordinate) Citizen {
+func Roam(citizen Citizen, boundaries Boundary) Citizen {
 
 	// calculate a random vector
 	vectorCoordinate := Coordinate{

@@ -17,13 +17,18 @@ const MaxReach = 2
 type World struct {
 	Citizens   []Citizen
 	BodyBags   []Citizen
-	Boundaries Coordinate
+	Boundaries Boundary
 }
 
 // Coordinate represents the two dimensional position within the world.
 type Coordinate struct {
 	X float64
 	Y float64
+}
+
+// Boundary represents the upper horizontal and vertical boundaries of the world size.
+type Boundary struct {
+	Coordinate
 }
 
 // Distance returns the euclidic distance between two coordinates in a two dimensional plane.
@@ -53,7 +58,7 @@ func (w *World) removeCitizen(index int, citizen Citizen) {
 	// w.Citizens[index] = w.Citizens[len(w.Citizens)-1]
 	// w.Citizens[len(w.Citizens)-1] = Citizen{}
 	// w.Citizens = w.Citizens[:len(w.Citizens)-1]
-	
+
 	// Delete
 	if index < len(w.Citizens)-1 {
 		copy(w.Citizens[index:], w.Citizens[index+1:])
