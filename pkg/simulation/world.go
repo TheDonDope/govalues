@@ -28,7 +28,8 @@ type Coordinate struct {
 
 // Boundary represents the upper horizontal and vertical boundaries of the world size.
 type Boundary struct {
-	Coordinate
+	X float64
+	Y float64
 }
 
 // Distance returns the euclidic distance between two coordinates in a two dimensional plane.
