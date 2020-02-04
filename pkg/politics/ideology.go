@@ -14,9 +14,9 @@ type Ideology struct {
 }
 
 // IdeologicDistance returns the distance over all ideologic properties
-func IdeologicDistance(oneIdeology, anotherIdeology Ideology) float64 {
+func IdeologicDistance(anIdeo, anotherIdeo Ideology) float64 {
 	return math.Sqrt(
-		math.Pow(oneIdeology.Economy-anotherIdeology.Economy, 2) + math.Pow(oneIdeology.Diplomacy-anotherIdeology.Diplomacy, 2) + math.Pow(oneIdeology.Government-anotherIdeology.Government, 2) + math.Pow(oneIdeology.Society-anotherIdeology.Society, 2))
+		math.Pow(anIdeo.Economy-anotherIdeo.Economy, 2) + math.Pow(anIdeo.Diplomacy-anotherIdeo.Diplomacy, 2) + math.Pow(anIdeo.Government-anotherIdeo.Government, 2) + math.Pow(anIdeo.Society-anotherIdeo.Society, 2))
 }
 
 // Ideologies contains the collection of all known ideologies
