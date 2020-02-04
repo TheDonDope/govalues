@@ -59,17 +59,21 @@ type Citizen struct {
 }
 
 // Conflict - two citiziens shooting at each other.
-func (c *Citizen) Conflict(d *Citizen) {
+func (c *Citizen) Conflict(d Citizen, b Boundary) {
 	hit := rand.Intn(10)
 	dmg := rand.Intn(10)
 
 	if hit%2 == 0 {
 		// All even rolls will hit anotherCitizen
 		d.loseHitpoints(dmg)
+		d.fleeFrom(*c, b)
+		c.chaseAfter(d, b)
 		// c.gainHitpoints(dmg / 2)
 	} else if hit%2 == 1 {
 		// All uneven rolls will hit OneCitizen
 		c.loseHitpoints(dmg)
+		c.fleeFrom(d, b)
+		d.chaseAfter(*c, b)
 		// d.gainHitpoints(dmg / 2)
 	}
 }
@@ -113,7 +117,7 @@ func (c *Citizen) Roam(b Boundary) {
 
 func (c *Citizen) gainHitpoints(h int) {
 	// log.WithFields(log.Fields{
-	// 	"Before": c,
+	// 	"Before": c.Hitpoints,
 	// }).Info("Gain HP")
 	v := c.Hitpoints + h
 	if v > MaxHitpoints {
@@ -125,7 +129,7 @@ func (c *Citizen) gainHitpoints(h int) {
 
 func (c *Citizen) loseHitpoints(h int) {
 	// log.WithFields(log.Fields{
-	// 	"Before": c,
+	// 	"Before": c.Hitpoints,
 	// }).Info("Lose HP")
 	v := c.Hitpoints - h
 	if v < 0 {
@@ -135,10 +139,25 @@ func (c *Citizen) loseHitpoints(h int) {
 	}
 }
 
-func (c *Citizen) chaseAfter(d *Citizen) {
-	// Calculate a random vector.
-	// b := Coordinate{
-	// 	X: rand.Float64()*MaxReach - MaxReach/2,
-	// 	Y: rand.Float64()*MaxReach - MaxReach/2,
-	// }
+func (c *Citizen) chaseAfter(d Citizen, b Boundary) {
+	// Calculate the chasing vector.
+	if c.Hitpoints > 0 {
+		v := Coordinate{
+			X: (d.Coordinate.X - c.Coordinate.X) * rand.Float64(),
+			Y: (d.Coordinate.Y - c.Coordinate.Y) * rand.Float64(),
+		}
+		c.Move(v, b)
+	}
+
+}
+
+func (c *Citizen) fleeFrom(d Citizen, b Boundary) {
+	// Calculate the fleeing vector.
+	if c.Hitpoints > 0 {
+		v := Coordinate{
+			X: -1.0 * (d.Coordinate.X - c.Coordinate.X) * rand.Float64(),
+			Y: -1.0 * (d.Coordinate.Y - c.Coordinate.Y) * rand.Float64(),
+		}
+		c.Move(v, b)
+	}
 }
