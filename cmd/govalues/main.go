@@ -13,7 +13,7 @@ func main() {
 	// Roll the dice...
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	// citizensNuremberg := 518365
+	//citizensNuremberg := 5183
 	// citizensNurembergInnerCity := 51836
 	// Create a new world with a Nuremburg sized population
 	world := &simulation.World{
@@ -23,7 +23,7 @@ func main() {
 			Y: 100,
 		},
 	}
-	size := 100
+	size := 118
 	world.Citizens = world.RandomPopulation(size)
 
 	log.WithFields(log.Fields{"Boundaries (X Y)": world.Boundaries,
@@ -31,4 +31,5 @@ func main() {
 
 	// Start the infinite loop of life and death
 	world.Run()
+	// world.Shutdown()
 }

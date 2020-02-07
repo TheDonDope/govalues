@@ -36,6 +36,7 @@ func ClosestIdeology(c Citizen) politics.Ideology {
 func WillFight(c, d Citizen) bool {
 	dist := politics.IdeologicDistance(c.Ideology, d.Ideology)
 	var fight bool
+
 	if dist < 25 {
 		// A bad day can happen to anyone, so let the dice decide...
 		hit := rand.Intn(100)
@@ -46,6 +47,7 @@ func WillFight(c, d Citizen) bool {
 		// Any distance over 50 will lead to a fight
 		fight = true
 	}
+
 	return fight
 }
 
@@ -59,22 +61,26 @@ type Citizen struct {
 }
 
 // Conflict - two citiziens shooting at each other.
-func (c *Citizen) Conflict(d Citizen, b Boundary) {
+func (c *Citizen) Conflict(d *Citizen, b Boundary) {
 	hit := rand.Intn(10)
-	dmg := rand.Intn(10)
+	dmg := rand.Intn(10) + 1
 
 	if hit%2 == 0 {
 		// All even rolls will hit anotherCitizen
+
 		d.loseHitpoints(dmg)
-		d.fleeFrom(*c, b)
+
+		c.gainHitpoints(dmg / 3)
+
+		d.fleeFrom(c, b)
 		c.chaseAfter(d, b)
-		// c.gainHitpoints(dmg / 2)
 	} else if hit%2 == 1 {
 		// All uneven rolls will hit OneCitizen
 		c.loseHitpoints(dmg)
+		d.gainHitpoints(dmg / 3)
+
 		c.fleeFrom(d, b)
-		d.chaseAfter(*c, b)
-		// d.gainHitpoints(dmg / 2)
+		d.chaseAfter(c, b)
 	}
 }
 
@@ -119,6 +125,7 @@ func (c *Citizen) gainHitpoints(h int) {
 	// log.WithFields(log.Fields{
 	// 	"Before": c.Hitpoints,
 	// }).Info("Gain HP")
+
 	v := c.Hitpoints + h
 	if v > MaxHitpoints {
 		c.Hitpoints = MaxHitpoints
@@ -131,6 +138,7 @@ func (c *Citizen) loseHitpoints(h int) {
 	// log.WithFields(log.Fields{
 	// 	"Before": c.Hitpoints,
 	// }).Info("Lose HP")
+
 	v := c.Hitpoints - h
 	if v < 0 {
 		c.Hitpoints = 0
@@ -139,7 +147,7 @@ func (c *Citizen) loseHitpoints(h int) {
 	}
 }
 
-func (c *Citizen) chaseAfter(d Citizen, b Boundary) {
+func (c *Citizen) chaseAfter(d *Citizen, b Boundary) {
 	// Calculate the chasing vector.
 	if c.Hitpoints > 0 {
 		v := Coordinate{
@@ -148,10 +156,9 @@ func (c *Citizen) chaseAfter(d Citizen, b Boundary) {
 		}
 		c.Move(v, b)
 	}
-
 }
 
-func (c *Citizen) fleeFrom(d Citizen, b Boundary) {
+func (c *Citizen) fleeFrom(d *Citizen, b Boundary) {
 	// Calculate the fleeing vector.
 	if c.Hitpoints > 0 {
 		v := Coordinate{
