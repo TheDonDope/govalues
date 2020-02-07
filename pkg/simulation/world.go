@@ -13,7 +13,7 @@ import (
 )
 
 // MaxReach is the maximum distance two citizens can be afar for combat interaction.
-const MaxReach = 1
+const MaxReach float64 = 1
 
 // Distance returns the euclidic distance between two coordinates in a two dimensional plane.
 func Distance(x, y Coordinate) float64 {
@@ -136,7 +136,7 @@ func (w *World) Run() {
 
 		if IsReachable(w.Citizens[i], w.Citizens[j]) {
 			if WillFight(w.Citizens[i], w.Citizens[j]) {
-				w.Citizens[i].Conflict(w.Citizens[j], w.Boundaries)
+				w.Citizens[i].Conflict(&w.Citizens[j], w.Boundaries)
 			}
 		}
 

@@ -59,21 +59,21 @@ type Citizen struct {
 }
 
 // Conflict - two citiziens shooting at each other.
-func (c *Citizen) Conflict(d Citizen, b Boundary) {
+func (c *Citizen) Conflict(d *Citizen, b Boundary) {
 	hit := rand.Intn(10)
 	dmg := rand.Intn(10)
 
 	if hit%2 == 0 {
 		// All even rolls will hit anotherCitizen
 		d.loseHitpoints(dmg)
-		d.fleeFrom(*c, b)
+		d.fleeFrom(c, b)
 		c.chaseAfter(d, b)
 		// c.gainHitpoints(dmg / 2)
 	} else if hit%2 == 1 {
 		// All uneven rolls will hit OneCitizen
 		c.loseHitpoints(dmg)
 		c.fleeFrom(d, b)
-		d.chaseAfter(*c, b)
+		d.chaseAfter(c, b)
 		// d.gainHitpoints(dmg / 2)
 	}
 }
@@ -139,7 +139,7 @@ func (c *Citizen) loseHitpoints(h int) {
 	}
 }
 
-func (c *Citizen) chaseAfter(d Citizen, b Boundary) {
+func (c *Citizen) chaseAfter(d *Citizen, b Boundary) {
 	// Calculate the chasing vector.
 	if c.Hitpoints > 0 {
 		v := Coordinate{
@@ -151,7 +151,7 @@ func (c *Citizen) chaseAfter(d Citizen, b Boundary) {
 
 }
 
-func (c *Citizen) fleeFrom(d Citizen, b Boundary) {
+func (c *Citizen) fleeFrom(d *Citizen, b Boundary) {
 	// Calculate the fleeing vector.
 	if c.Hitpoints > 0 {
 		v := Coordinate{
