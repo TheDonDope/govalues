@@ -7,7 +7,11 @@ import json
 
 def label_point(x, y, val, ax):
     a = pd.concat({'x': x, 'y': y, 'val': val}, axis=1)
+<<<<<<< HEAD
     for _, point in a.iterrows():
+=======
+    for i, point in a.iterrows():
+>>>>>>> 07be163837676e28ae55840826fdf95d804441c5
         ax.text(point['x'], point['y'], str(point['val']))
 
 world = {}

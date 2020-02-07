@@ -13,7 +13,11 @@ import (
 )
 
 // MaxReach is the maximum distance two citizens can be afar for combat interaction.
+<<<<<<< HEAD
 const MaxReach float64 = 1
+=======
+const MaxReach = 1
+>>>>>>> 07be163837676e28ae55840826fdf95d804441c5
 
 // Distance returns the euclidic distance between two coordinates in a two dimensional plane.
 func Distance(x, y Coordinate) float64 {
@@ -73,7 +77,11 @@ type World struct {
 func (w *World) RandomCitizen() Citizen {
 	c := Citizen{
 		ID:        rand.Int(),
+<<<<<<< HEAD
 		Hitpoints: MaxHitpoints,
+=======
+		Hitpoints: rand.Intn(MaxHitpoints),
+>>>>>>> 07be163837676e28ae55840826fdf95d804441c5
 		Coordinate: Coordinate{
 			// Restrict placement of a citizen to be within the boundaries of the world.
 			X: rand.Float64() * w.Boundaries.X,
@@ -136,6 +144,7 @@ func (w *World) Run() {
 
 		if IsReachable(w.Citizens[i], w.Citizens[j]) {
 			if WillFight(w.Citizens[i], w.Citizens[j]) {
+<<<<<<< HEAD
 
 				// log.WithFields(log.Fields{
 				// 	"w.Citizens[i].hp.befor":  w.Citizens[i].Hitpoints,
@@ -149,6 +158,9 @@ func (w *World) Run() {
 				// 	"w.Citizens[j].hp.after":  w.Citizens[j].Hitpoints,
 				// }).Info("after conflict")
 
+=======
+				w.Citizens[i].Conflict(w.Citizens[j], w.Boundaries)
+>>>>>>> 07be163837676e28ae55840826fdf95d804441c5
 			}
 		}
 
