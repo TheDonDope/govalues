@@ -1,6 +1,6 @@
 module github.com/TheDonDope/govalues
 
-go 1.24.2
+go 1.26.3
 
 require github.com/sirupsen/logrus v1.9.4
 
